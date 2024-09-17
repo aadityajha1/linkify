@@ -6,9 +6,9 @@ export async function GET() {
   const newUser = new Users({
     name: "John Doe",
     age: 30,
-    email: "johndoe@example.com",
+    email: "jacksmith@example.com",
     password: "password123",
-    username: "johndoe",
+    username: "Jack Smith",
   });
   await newUser.save();
   console.log("User created successfully", newUser);
