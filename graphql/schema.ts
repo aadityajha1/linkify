@@ -1,6 +1,6 @@
 // import { gql } from 'apollo-server-micro';
 import { userTypeDefs } from "./typeDefs/user";
-// import { postTypeDefs } from './typeDefs/post';
+import { postTypeDefs } from "./typeDefs/post";
 import { userResolvers } from "./resolvers/user";
 // import { postResolvers } from './resolvers/post';
 import gql from "graphql-tag";
@@ -15,5 +15,5 @@ const rootTypeDefs = gql`
   }
 `;
 
-export const typeDefs = [rootTypeDefs, userTypeDefs];
+export const typeDefs = [rootTypeDefs, userTypeDefs, postTypeDefs];
 export const resolvers = [userResolvers];
