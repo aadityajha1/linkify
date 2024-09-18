@@ -1,8 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+**Readme.md**
 
-## Getting Started
+# Next.js GraphQL Application with MongoDB
 
-First, run the development server:
+This is a Next.js application that integrates with a GraphQL API and MongoDB for managing posts, users, comments, and likes.
+
+## Features
+
+- User authentication using JWT
+- CRUD operations for posts, comments, and likes
+- Image upload for post photos
+- GraphQL API with type definitions for posts, users, comments, and likes
+- MongoDB database for storing data
+
+## Setup Locally
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/aadityajha1/linkify.git
+cd linkify
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+# or
+bun install
+```
+
+3. Create a `.env` file in the root directory and add the following environment variables:
+
+```
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
+JWT_SECRET=your-jwt-secret
+```
+
+Replace `<username>` and `<password>` with your MongoDB cluster credentials.
+
+4. Start the development server:
 
 ```bash
 npm run dev
@@ -14,23 +54,8 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application will be available at [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You can now explore the GraphQL API by visiting [http://localhost:3000/api/graphql](http://localhost:3000/api/graphql) and using a GraphQL client like GraphQL Playground or Postman.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Note: Make sure you have MongoDB running locally or replace the `MONGODB_URI` with your own MongoDB connection string.
