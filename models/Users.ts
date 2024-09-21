@@ -9,6 +9,8 @@ export interface User extends mongoose.Document {
   password: string;
   bio: string;
   followers: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const userSchema = new mongoose.Schema<User>(

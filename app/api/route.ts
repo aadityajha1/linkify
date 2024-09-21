@@ -4,11 +4,12 @@ import Users from "@/models/Users";
 export async function GET() {
   await dbConnect();
   const newUser = new Users({
-    name: "John Doe",
+    name: "Aaditya Jha",
     age: 30,
-    email: "jacksmith@example.com",
+    email: "aadityajha@example.com",
     password: "password123",
-    username: "Jack Smith",
+    username: "aadityajha",
+    bio: "Innovative software engineer with a passion for cutting-edge technologies. Specializing in AI and machine learning, I strive to create solutions that push the boundaries of what's possible in tech.",
   });
   await newUser.save();
   console.log("User created successfully", newUser);

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+  <rect width="100%" height="100%" fill="#cccccc"/>
+  
+  <svg id="content" width="100%" height="100%">
+    <rect width="100%" height="100%" fill="none"/>
+    <text id="dimensions" x="50%" y="30%" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="10" fill="#666666"></text>
+    <text id="custom-text" x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="12" fill="#666666"></text>
+  </svg>
+
+  <script type="text/javascript">
+    <![CDATA[
+      function getParameterByName(name) {
+        var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+        return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+      }
+
+      var width = getParameterByName('width') || 100;
+      var height = getParameterByName('height') || 100;
+      var text = getParameterByName('text') || '';
+
+      var svg = document.getElementsByTagName('svg')[0];
+      svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+
+      var dimensionsText = document.getElementById('dimensions');
+      dimensionsText.textContent = width + 'x' + height;
+
+      var customText = document.getElementById('custom-text');
+      customText.textContent = text;
+
+      // Adjust font size based on SVG size
+      var fontSize = Math.min(width, height) / 10;
+      dimensionsText.setAttribute('font-size', fontSize);
+      customText.setAttribute('font-size', fontSize * 1.2);
+    ]]>
+  </script>
+</svg>
