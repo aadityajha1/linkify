@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 export const postTypeDefs = gql`
   type Post {
     id: ID!
-    title: String!
+    title: String
     content: String!
     createdAt: String!
     author: User!

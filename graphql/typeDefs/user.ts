@@ -9,6 +9,7 @@ export const userTypeDefs = gql`
     password: String!
     email: String!
     bio: String!
+    dob: String!
     followers: [User!]!
     createdAt: String!
     updatedAt: String!
@@ -16,5 +17,29 @@ export const userTypeDefs = gql`
   extend type Query {
     getUser(_id: ID!): User!
     getUsers: [User!]!
+  }
+  extend type Mutation {
+    createUser(
+      name: String!
+      dob: String!
+      profile_picture: String
+      username: String!
+      email: String!
+      password: String!
+      bio: String
+    ): User!
+    updateUser(
+      _id: ID!
+      name: String
+      dob: String
+      profile_picture: String
+      username: String
+      email: String
+      password: String
+      bio: String
+    ): User!
+    deleteUser(_id: ID!): Boolean!
+    followUser(_id: ID!): User!
+    unfollowUser(_id: ID!): User!
   }
 `;
