@@ -6,7 +6,7 @@ export interface Post extends mongoose.Document {
   author: User["_id"];
   title: string;
   content: string;
-  photos: string[];
+  images: string[];
   likes: User["id"][];
   comments: Comment["id"][];
 }
@@ -21,7 +21,7 @@ const postSchema = new mongoose.Schema<Post>(
 
     title: { type: String, required: true },
     content: { type: String, required: true },
-    photos: { type: [String] },
+    images: { type: [String] },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
   },

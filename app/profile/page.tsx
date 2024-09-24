@@ -1,7 +1,6 @@
 // "use client";
 import ProfilePageComponent from "@/components/profile-page";
 import { getClient } from "@/lib/apolloClient";
-import { useQuery } from "@apollo/client";
 import gql from "graphql-tag";
 import React from "react";
 

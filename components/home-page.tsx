@@ -28,6 +28,7 @@ import {
   Copy,
   Edit,
   BookmarkPlus,
+  Send,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -48,10 +49,20 @@ interface Post {
   id: number;
   content: string;
   likes: number;
-  comments: number;
+  comments: Comment[];
   images: string[];
 }
-
+interface Comment {
+  id: number;
+  content: string;
+  author: {
+    name: string;
+    username: string;
+    avatar: string;
+  };
+  likes: number;
+  replies: Comment[];
+}
 function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPostContent, setNewPostContent] = useState("");
@@ -62,14 +73,50 @@ function HomePage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isAddToReadingListOpen, setIsAddToReadingListOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-
+  const [expandedComments, setExpandedComments] = useState<
+    Record<number, boolean>
+  >({});
+  const [newComments, setNewComments] = useState<Record<number, string>>({});
+  const [commentPages, setCommentPages] = useState<Record<number, number>>({});
+  const [replyPages, setReplyPages] = useState<Record<string, number>>({});
+  const [replyingTo, setReplyingTo] = useState<{
+    postId: number;
+    commentId: number;
+  } | null>(null);
+  const [newReply, setNewReply] = useState("");
   const fetchPosts = async (pageNum: number) => {
     // Simulating API call
     const newPosts = Array.from({ length: 5 }, (_, i) => ({
       id: posts.length + i + 1,
       content: `Post ${posts.length + i + 1} content. #Trending #Tech`,
       likes: Math.floor(Math.random() * 100),
-      comments: Math.floor(Math.random() * 20),
+      comments: Array.from(
+        { length: Math.floor(Math.random() * 20) + 1 },
+        (_, j) => ({
+          id: j + 1,
+          content: `Comment ${j + 1} on post ${posts.length + i + 1}`,
+          author: {
+            name: `User ${Math.floor(Math.random() * 100)}`,
+            username: `user${Math.floor(Math.random() * 100)}`,
+            avatar: `/placeholder.svg?height=40&width=40&text=U`,
+          },
+          likes: Math.floor(Math.random() * 20),
+          replies: Array.from(
+            { length: Math.floor(Math.random() * 10) },
+            (_, k) => ({
+              id: k + 1,
+              content: `Reply ${k + 1} to comment ${j + 1}`,
+              author: {
+                name: `User ${Math.floor(Math.random() * 100)}`,
+                username: `user${Math.floor(Math.random() * 100)}`,
+                avatar: `/placeholder.svg?height=40&width=40&text=U`,
+              },
+              likes: Math.floor(Math.random() * 10),
+              replies: [],
+            })
+          ),
+        })
+      ),
       images: Array.from(
         { length: 4 },
         (_, j) => `/placeholder.svg?height=150&width=150&text=Image${j + 1}`
@@ -104,7 +151,7 @@ function HomePage() {
         id: Date.now(),
         content: newPostContent,
         likes: 0,
-        comments: 0,
+        comments: [],
         images: Array.from(
           { length: 4 },
           (_, i) =>
@@ -134,6 +181,182 @@ function HomePage() {
   const handleAddToReadingList = (post: Post) => {
     setSelectedPost(post);
     setIsAddToReadingListOpen(true);
+  };
+
+  const toggleComments = (postId: number) => {
+    setExpandedComments((prev) => ({ ...prev, [postId]: !prev[postId] }));
+    if (!commentPages[postId]) {
+      setCommentPages((prev) => ({ ...prev, [postId]: 1 }));
+    }
+  };
+
+  const loadMoreComments = (postId: number) => {
+    setCommentPages((prev) => ({ ...prev, [postId]: (prev[postId] || 1) + 1 }));
+  };
+
+  const loadMoreReplies = (postId: number, commentId: number) => {
+    const key = `${postId}-${commentId}`;
+    setReplyPages((prev) => ({ ...prev, [key]: (prev[key] || 1) + 1 }));
+  };
+
+  const addComment = (postId: number) => {
+    if (newComments[postId]?.trim()) {
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              comments: [
+                {
+                  id: post.comments.length + 1,
+                  content: newComments[postId],
+                  author: {
+                    name: "Current User",
+                    username: "currentuser",
+                    avatar: "/placeholder.svg?height=40&width=40&text=CU",
+                  },
+                  likes: 0,
+                  replies: [],
+                },
+                ...post.comments,
+              ],
+            };
+          }
+          return post;
+        })
+      );
+      setNewComments((prev) => ({ ...prev, [postId]: "" }));
+    }
+  };
+
+  const addReply = (postId: number, commentId: number) => {
+    if (newReply.trim()) {
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              comments: post.comments.map((comment) => {
+                if (comment.id === commentId) {
+                  return {
+                    ...comment,
+                    replies: [
+                      {
+                        id: comment.replies.length + 1,
+                        content: newReply,
+                        author: {
+                          name: "Current User",
+                          username: "currentuser",
+                          avatar: "/placeholder.svg?height=40&width=40&text=CU",
+                        },
+                        likes: 0,
+                        replies: [],
+                      },
+                      ...comment.replies,
+                    ],
+                  };
+                }
+                return comment;
+              }),
+            };
+          }
+          return post;
+        })
+      );
+      setNewReply("");
+      setReplyingTo(null);
+    }
+  };
+
+  const renderComments = (
+    comments: Comment[],
+    postId: number,
+    isReply = false,
+    parentCommentId?: number
+  ) => {
+    const key = isReply ? `${postId}-${parentCommentId}` : `${postId}`;
+    const currentPage = isReply
+      ? replyPages[key] || 1
+      : commentPages[postId] || 1;
+    const itemsPerPage = 5;
+    const visibleComments = comments.slice(0, currentPage * itemsPerPage);
+
+    return (
+      <div className={`space-y-4 ${isReply ? "ml-8 mt-2" : ""}`}>
+        {visibleComments.map((comment) => (
+          <div key={comment.id} className="bg-muted p-3 rounded-lg">
+            <div className="flex items-center space-x-2 mb-2">
+              <Avatar className="h-6 w-6">
+                <AvatarImage
+                  src={comment.author.avatar}
+                  alt={`@${comment.author.username}`}
+                />
+                <AvatarFallback>{comment.author.name[0]}</AvatarFallback>
+              </Avatar>
+              <span className="font-semibold text-sm">
+                {comment.author.name}
+              </span>
+              <span className="text-muted-foreground text-xs">
+                @{comment.author.username}
+              </span>
+            </div>
+            <p className="text-sm mb-2">{comment.content}</p>
+            <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+              <Button variant="ghost" size="sm" className="h-auto p-0">
+                <ThumbsUp className="h-3 w-3 mr-1" />
+                {comment.likes}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-auto p-0"
+                onClick={() => setReplyingTo({ postId, commentId: comment.id })}
+              >
+                Reply
+              </Button>
+            </div>
+            {replyingTo?.postId === postId &&
+              replyingTo?.commentId === comment.id && (
+                <div className="mt-2 flex items-center space-x-2">
+                  <Input
+                    placeholder="Write a reply..."
+                    value={newReply}
+                    onChange={(e) => setNewReply(e.target.value)}
+                    className="flex-grow"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => addReply(postId, comment.id)}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            {comment.replies.length > 0 &&
+              renderComments(comment.replies, postId, true, comment.id)}
+            {comment.replies.length > visibleComments.length * itemsPerPage && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => loadMoreReplies(postId, comment.id)}
+                className="mt-2"
+              >
+                Load more replies
+              </Button>
+            )}
+          </div>
+        ))}
+        {!isReply && comments.length > visibleComments.length && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => loadMoreComments(postId)}
+          >
+            Load more comments
+          </Button>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -244,7 +467,7 @@ function HomePage() {
                       </Button>
                       <Button variant="ghost" size="icon">
                         <MessageCircle className="h-4 w-4 mr-2" />
-                        {post.comments}
+                        {post.comments.length}
                       </Button>
                     </div>
                   </CardFooter>
