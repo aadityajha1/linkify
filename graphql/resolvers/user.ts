@@ -42,5 +42,9 @@ export const userResolvers: IResolvers = {
       await User.findByIdAndDelete(_id);
       return true;
     },
+    login: async (_, { username, password }) => {
+      const { token, user } = await userService.login(username, password);
+      return { token, user };
+    },
   },
 };
