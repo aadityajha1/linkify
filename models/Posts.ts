@@ -4,7 +4,6 @@ import { Comment } from "./Comment";
 
 export interface Post extends mongoose.Document {
   author: User["_id"];
-  title: string;
   content: string;
   images: string[];
   likes: User["id"][];
@@ -19,7 +18,6 @@ const postSchema = new mongoose.Schema<Post>(
       required: true,
     },
 
-    title: { type: String, required: true },
     content: { type: String, required: true },
     images: { type: [String] },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
