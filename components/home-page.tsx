@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -29,6 +29,9 @@ import {
   Edit,
   BookmarkPlus,
   Send,
+  ChevronUp,
+  ChevronDown,
+  X,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -38,12 +41,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useInView } from "react-intersection-observer";
 import SharePost from "@/components/share-post";
 import EditPost from "@/components/edit-post";
 import AddToReadingList from "@/components/add-to-reading-list";
+import gql from "graphql-tag";
 
 interface Post {
   id: number;
@@ -63,9 +67,18 @@ interface Comment {
   likes: number;
   replies: Comment[];
 }
+
+const CREATE_POST = gql`
+  mutation CreatePost($content: String!, $files: [Upload!]) {
+    createPost(content: $content, files: $files) {
+      title
+    }
+  }
+`;
 function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPostContent, setNewPostContent] = useState("");
+  const [newPostImages, setNewPostImages] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const { theme, setTheme } = useTheme();
   const [ref, inView] = useInView();
@@ -84,6 +97,8 @@ function HomePage() {
     commentId: number;
   } | null>(null);
   const [newReply, setNewReply] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const fetchPosts = async (pageNum: number) => {
     // Simulating API call
     const newPosts = Array.from({ length: 5 }, (_, i) => ({
@@ -145,24 +160,62 @@ function HomePage() {
     // In a real implementation, you would call an AI image generation API here
   };
 
-  const addPost = () => {
+  const addPost = async () => {
+    const content = newPostContent.trim();
+    // const files = newPostImages;
+    const operations = {
+      query: CREATE_POST.loc?.source.body,
+      variables: { content, files: new Array(files.length).fill(null) },
+    };
+
+    const map: any = {};
+    files.forEach((_, i) => (map[i] = [`variables.files.${i}`]));
+
+    const formData = new FormData();
+    formData.append("operations", JSON.stringify(operations));
+    formData.append("map", JSON.stringify(map));
+    files
+      .map((file) => file)
+      .forEach((file, i) => formData.append(i.toString(), file));
+    try {
+      const result = await fetch("/api/graphql", {
+        method: "POST",
+        body: formData,
+      }).then((res) => res.json());
+
+      console.log("Post created:", result.data.createPost);
+      // setContent('');
+      setFiles([]);
+    } catch (error) {
+      console.error("Error creating post:", error);
+    }
     if (newPostContent.trim()) {
       const newPost: Post = {
         id: Date.now(),
         content: newPostContent,
         likes: 0,
         comments: [],
-        images: Array.from(
-          { length: 4 },
-          (_, i) =>
-            `/placeholder.svg?height=150&width=150&text=NewImage${i + 1}`
-        ),
+        images: newPostImages,
       };
       setPosts([newPost, ...posts]);
       setNewPostContent("");
+      setNewPostImages([]);
+    }
+  };
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    setFiles((prevFiles) => [...prevFiles, ...Array.from(files || [])]);
+    if (files) {
+      const newImages = Array.from(files).map((file) =>
+        URL.createObjectURL(file)
+      );
+      setNewPostImages((prevImages) => [...prevImages, ...newImages]);
     }
   };
 
+  const removeImage = (index: number) => {
+    setNewPostImages((prevImages) => prevImages.filter((_, i) => i !== index));
+  };
   const handleShare = (post: Post) => {
     setSelectedPost(post);
     setIsShareOpen(true);
@@ -371,6 +424,43 @@ function HomePage() {
                 onChange={(e) => setNewPostContent(e.target.value)}
               />
             </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-4">
+                {newPostImages.map((image, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={image}
+                      alt={`Uploaded image ${index + 1}`}
+                      className="w-full h-24 object-cover rounded-md"
+                    />
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-1 right-1 h-6 w-6"
+                      onClick={() => removeImage(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+                className="hidden"
+                ref={fileInputRef}
+              />
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full"
+              >
+                <ImageIcon className="h-4 w-4 mr-2" />
+                Add Images
+              </Button>
+            </CardContent>
             <CardFooter className="flex justify-between">
               <div className="flex space-x-2">
                 <Button variant="outline" size="sm" onClick={generateAIContent}>
@@ -461,16 +551,57 @@ function HomePage() {
                   </CardContent>
                   <CardFooter>
                     <div className="flex space-x-4 text-sm text-muted-foreground">
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="sm">
                         <ThumbsUp className="h-4 w-4 mr-2" />
                         {post.likes}
                       </Button>
-                      <Button variant="ghost" size="icon">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleComments(post.id)}
+                      >
                         <MessageCircle className="h-4 w-4 mr-2" />
                         {post.comments.length}
+                        {expandedComments[post.id] ? (
+                          <ChevronUp className="h-4 w-4 ml-1" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 ml-1" />
+                        )}
                       </Button>
                     </div>
                   </CardFooter>
+                  <AnimatePresence>
+                    {expandedComments[post.id] && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <CardContent>
+                          <div className="flex items-center space-x-2 mb-4">
+                            <Input
+                              placeholder="Add a comment..."
+                              value={newComments[post.id] || ""}
+                              onChange={(e) =>
+                                setNewComments((prev) => ({
+                                  ...prev,
+                                  [post.id]: e.target.value,
+                                }))
+                              }
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => addComment(post.id)}
+                            >
+                              <Send className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {renderComments(post.comments, post.id)}
+                        </CardContent>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </Card>
               </motion.div>
             ))}
