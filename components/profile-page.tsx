@@ -34,14 +34,15 @@ interface Post {
 }
 
 type ProfilePageProps = {
-  userDetails: User;
+  // userDetails: User;
+  getUser: (userId: string) => Promise<User>;
 };
-const ProfilePageComponent: React.FC<ProfilePageProps> = ({ userDetails }) => {
+const ProfilePageComponent: React.FC<ProfilePageProps> = ({ getUser }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
   const [ref, inView] = useInView();
-
-  console.log(userDetails);
+  const [userDetails, setUserDetails] = useState<User>();
+  // console.log(userDetails);
   const fetchPosts = async (pageNum: number) => {
     // Simulating API call
     const newPosts = Array.from({ length: 5 }, (_, i) => ({
@@ -64,6 +65,19 @@ const ProfilePageComponent: React.FC<ProfilePageProps> = ({ userDetails }) => {
     }
   }, [inView]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.localStorage) {
+      const token = window.localStorage.getItem("token");
+      const user = window.localStorage.getItem("user");
+      if (token && user) {
+        const parsedUser = JSON.parse(user);
+        getUser(parsedUser._id).then((userInfo) => {
+          setUserDetails(userInfo);
+        });
+      }
+    }
+  }, []);
+
   const generateAIBio = () => {
     // Simulating AI-generated bio
     const newBio =
@@ -71,7 +85,7 @@ const ProfilePageComponent: React.FC<ProfilePageProps> = ({ userDetails }) => {
     // In a real implementation, you would update the user's bio in the database
     alert("New AI-generated bio: " + newBio);
   };
-  const userLetters = userDetails.name
+  const userLetters = userDetails?.name
     .split(" ")
     .map((w) => w.charAt(0))
     .join("");
@@ -86,16 +100,19 @@ const ProfilePageComponent: React.FC<ProfilePageProps> = ({ userDetails }) => {
           <CardHeader>
             <div className="flex flex-col items-center">
               <Avatar className="h-24 w-24">
-                <AvatarImage src="/placeholder-avatar.jpg" alt="@johndoe" />
+                <AvatarImage
+                  src={`/uploads/${userDetails?.profile_picture}`}
+                  alt="@johndoe"
+                />
                 <AvatarFallback>{userLetters} </AvatarFallback>
               </Avatar>
               <h2 className="mt-4 text-2xl font-bold">{userDetails?.name}</h2>
-              <p className="text-muted-foreground">@{userDetails.username}</p>
+              <p className="text-muted-foreground">@{userDetails?.username}</p>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p>{userDetails.bio}</p>
+              <p>{userDetails?.bio}</p>
               <div className="flex items-center space-x-2 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
                 <span>San Francisco, CA</span>

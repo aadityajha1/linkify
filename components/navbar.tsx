@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,9 +22,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { useTheme } from "next-themes";
+import { redirect } from "next/navigation";
 
 function navbar({ children }: { children: React.ReactNode }) {
   const { theme, setTheme } = useTheme();
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.localStorage) {
+      const token = localStorage.getItem("token");
+      console.log("Token from navbar: ", token);
+      if (!token) {
+        redirect("/login");
+        // return null;
+      }
+    }
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
