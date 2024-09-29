@@ -6,7 +6,7 @@ export interface Post extends mongoose.Document {
   author: User["_id"];
   content: string;
   images: string[];
-  likes: User["id"][];
+  likes: User["_id"][];
   comments: Comment["id"][];
 }
 

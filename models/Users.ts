@@ -9,7 +9,7 @@ export interface User extends mongoose.Document {
   email: string;
   password: string;
   bio: string;
-  followers?: string[];
+  followers?: User["_id"][];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema<User>(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     bio: { type: String },
-    followers: { type: [String], default: [] },
+    followers: { type: [mongoose.Types.ObjectId], ref: "User", default: [] },
   },
   { timestamps: true }
 );
