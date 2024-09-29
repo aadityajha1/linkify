@@ -11,5 +11,9 @@ export async function POST(req: Request, res: Response) {
     uploadedFiles.push({ filename, path });
   }
   //   const uploadedFiles = uploadFile()
-  return Response.json({ message: "Form submitted successfully", status: 200 });
+  return Response.json({
+    message: "Form submitted successfully",
+    status: 200,
+    files: uploadedFiles,
+  });
 }
