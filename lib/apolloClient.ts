@@ -33,7 +33,10 @@ import {
 
 const authLink = setContext((_, { headers }) => {
   // Get token from local storage
-  const token = localStorage.getItem("token");
+  let token;
+  if (typeof window !== "undefined" && window.localStorage) {
+    token = localStorage.getItem("token");
+  }
 
   // Return headers with the token
   return {
