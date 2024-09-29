@@ -1,3 +1,4 @@
+// import Users from "@/models/Users";
 import Users from "@/models/Users";
 import jwt from "jsonwebtoken";
 import { NextApiRequest } from "next";
@@ -14,7 +15,7 @@ export const getUser = async (req: NextRequest) => {
   if (token) {
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as { _id: string };
-      return await Users.findById(decoded._id);
+      return Users.findById(decoded._id);
     } catch (error) {
       console.error("Error verifying token:", error);
     }
