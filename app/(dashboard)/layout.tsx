@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "./globals.css";
-import { ApolloWrapper } from "./ApolloWraper";
+import "../globals.css";
+import { ApolloWrapper } from "../ApolloWraper";
 import Navbar from "@/components/navbar";
+import { redirect } from "next/navigation";
 const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
+  src: "../fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
 });
 const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
+  src: "../fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
 });
@@ -29,9 +30,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* <Navbar> */}
-        <ApolloWrapper>{children}</ApolloWrapper>
-        {/* </Navbar> */}
+        <Navbar>
+          <ApolloWrapper>{children}</ApolloWrapper>
+        </Navbar>
         {/* {children} */}
       </body>
     </html>
