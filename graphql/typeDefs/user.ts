@@ -5,12 +5,12 @@ export const userTypeDefs = gql`
     _id: ID!
     name: String!
     username: String!
-    password: String!
+    password: String
     email: String!
-    bio: String!
-    dob: String!
+    bio: String
+    dob: String
     followers: [User!]!
-    profile_picture: String!
+    profile_picture: String
     createdAt: String!
     updatedAt: String!
   }

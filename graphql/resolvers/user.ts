@@ -46,5 +46,14 @@ export const userResolvers: IResolvers = {
       const { token, user } = await userService.login(username, password);
       return { token, user };
     },
+    followUser: async (_, { _id }, { user }) => {
+      const userTobeFollowed = await User.findById(_id);
+      if (!userTobeFollowed) {
+        throw new Error("User not found");
+      }
+      userTobeFollowed.followers.push(user._id);
+      await userTobeFollowed.save();
+      return userTobeFollowed;
+    },
   },
 };
