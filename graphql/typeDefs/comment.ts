@@ -17,12 +17,12 @@ export const commentTypeDefs = gql`
     getCommentById(id: ID!): Comment!
   }
 
-  #   extend type Mutation {
-  #     createComment(content: String!, postId: ID!): Comment!
-  #     deleteComment(id: ID!): Boolean!
-  #     likeComment(commentId: ID!): Comment!
-  #     replyToComment(commentId: ID!, content: String!): Comment!
-  #   }
+  extend type Mutation {
+    createComment(content: String!, postId: String!): Comment!
+    deleteComment(id: ID!): Boolean!
+    likeComment(commentId: ID!): Comment!
+    replyToComment(commentId: ID!, content: String!): Comment!
+  }
 
   #   extend type Subscription {
   #     newComment: Comment!

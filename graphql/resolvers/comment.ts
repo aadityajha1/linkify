@@ -12,11 +12,14 @@ export const commentResolvers: IResolvers = {
       return Comment.findById(id);
     },
   },
-  //   Mutation: {
-  //     createComment: (_, { postId, content }, { dataSources }) => {
-  //       // Create a new comment in the database
-  //       const newComment = new Comment({ postId, content });
-  //       return dataSources.postAPI.createComment(newComment);
-  //     },
-  //   },
+  Mutation: {
+    createComment: async (_, { postId, content }, { user }) => {
+      // Create a new comment in the database
+      console.log("PostID: ", postId, "Content: ", content, "User: ", user._id);
+      const newComment = new Comment({ postId, content, user: user._id });
+      await newComment.save();
+      const comment = await Comment.findById(newComment._id).populate("user");
+      return comment;
+    },
+  },
 };
