@@ -1,6 +1,6 @@
 import Posts from "@/models/Posts";
+import postServices from "@/services/postServices";
 import { IResolvers } from "@graphql-tools/utils";
-
 export const postResolvers: IResolvers = {
   Query: {
     getAllPosts: () => {
@@ -9,59 +9,24 @@ export const postResolvers: IResolvers = {
     getPostById: (_, { _id }) => {
       return Posts.findById(_id);
     },
-    // getPostsByAuthor: (_, { author }) => {
-    //   return Posts.find({ author });
-    // },
-    // getPostsByCategory: (_, { category }) => {
-    //   return Posts.find({ category });
-    // },
-    // getPostsByTitle: (_, { title }) => {
-    //   return Posts.find({ title: { $regex: title, $options: "i" } });
-    // },
-    // getPostsByContent: (_, { content }) => {
-    //   return Posts.find({ content: { $regex: content, $options: "i" } });
-    // },
-    // getPostsByCreatedAt: (_, { createdAt }) => {
-    //   return Posts.find({ createdAt });
-    // },
-    // getPostsByLikes: (_, { likes }) => {
-    //   return Posts
-    // }
+    getFeeds: async (_, { limit, page }, { user }) => {
+      console.log(typeof limit, typeof page, page, limit);
+      const posts = await postServices.getFeedPosts(
+        user._id,
+        page || 1,
+        limit || 10
+      );
+      return posts;
+    },
   },
   Mutation: {
     createPost: async (_, { content, files }, { user }) => {
       console.log("Images ::: ", files, user);
-      // const uploadedFiles = await Promise.all(
-      //   files.map((file: any) => uploadFile(file))
-      // );
-      // const uploadedFiles = await Promise.all(
-      //   files.map(async (file: any) => {
-      //     const { createReadStream, filename, mimetype, encoding } = await file;
-      //     const stream = createReadStream();
-      //     // Process the file stream (e.g., save to disk, upload to cloud storage, etc.)
-      //     // For demonstration, we'll just return the file metadata
-      //     const pathName = `./uploads/${filename}`;
-      //     await new Promise((resolve, reject) => {
-      //       const writeStream = require("fs").createWriteStream(pathName);
-      //       stream.pipe(writeStream).on("finish", resolve).on("error", reject);
-      //     });
-      //     return { filename, mimetype, encoding };
-      //   })
-      // );
-      // for (let file of files) {
-      //   const { createReadStream, filename, mimetype, encoding } = await file;
-      //   console.log("File uploaded to:", filename, mimetype);
-      //   const stream = createReadStream();
-      //   const pathName = `./uploads/${filename}`;
-      //   await new Promise((resolve, reject) => {
-      //     const writeStream = require("fs").createWriteStream(pathName);
-      //     stream.pipe(writeStream).on("finish", resolve).on("error", reject);
-      //   });
-      // }
       const images: string[] = files; //files.map((file) => file.path);
       const newPost = new Posts({ content, images, author: user._id });
       await newPost.save();
-      return newPost;
+      const post = await Posts.findById(newPost._id).populate("author");
+      return post;
     },
     updatePost: async (_, { _id, title, content, images }, { user }) => {
       const updatedPost = await Posts.findByIdAndUpdate(

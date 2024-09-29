@@ -9,12 +9,13 @@ export const postTypeDefs = gql`
     author: User!
     comments: [Comment!]!
     likes: [User!]!
-    photos: [String!]!
+    images: [String!]!
   }
 
   extend type Query {
     getAllPosts: [Post!]!
     getPostById(id: ID!): Post!
+    getFeeds(limit: Int, page: Int): [Post]
   }
   extend type Mutation {
     createPost(content: String!, files: [String!]): Post!
